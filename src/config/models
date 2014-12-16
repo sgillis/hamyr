@@ -1,0 +1,48 @@
+User
+    ident Text
+    password Text Maybe
+    UniqueUser ident
+    deriving Typeable
+Email
+    email Text
+    user UserId Maybe
+    verkey Text Maybe
+    UniqueEmail email
+
+Currency
+    created UTCTime default=CURRENT_TIME
+    name Text
+    unit Text
+    UniqueCurrencyName name
+    deriving Show
+
+TransactionType
+    name Text
+    description Text
+    UniqueTransactionTypeName name
+
+Wallet
+    created UTCTime default=CURRENT_TIME
+    name Text
+    allowNegativeBalance Bool default=False
+    UniqueWalletName name
+
+WalletBalance
+    wallet WalletId
+    currency CurrencyId
+    balance Double default=0
+    bonusBalance Double default=0
+    UniqueBalance wallet currency
+
+Transaction
+    created UTCTime default=CURRENT_TIME
+    stateChanged UTCTime Maybe
+    state TransactionState
+    fromWallet WalletId
+    toWallet WalletId
+    amount Double
+    bonusAmount Double
+    currency CurrencyId
+    vatPercentage Int
+    transactionType TransactionTypeId
+    clientName Text

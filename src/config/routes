@@ -1,0 +1,16 @@
+/static StaticR Static getStatic
+/auth   AuthR   Auth   getAuth
+
+/favicon.ico FaviconR GET
+/robots.txt RobotsR GET
+
+/ HomeR GET POST
+
+/currencies             CurrenciesR GET POST
+/currencies/#CurrencyId CurrencyR   GET
+/transactiontypes TransactionTypesR GET POST
+/wallets WalletsR GET POST
+/wallets/#Text WalletR GET
+/wallets/#Text/balance/#Text BalanceR GET
+/transactions TransactionsR GET POST
+/transactions/#TransactionId TransactionR GET PUT
