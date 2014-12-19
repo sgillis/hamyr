@@ -19,6 +19,8 @@ import Text.Jasmine (minifym)
 import Text.Hamlet (hamletFile)
 import Yesod.Core.Types (Logger)
 import Data.Text
+import Database.Redis
+import Redis
 
 -- | The site argument for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -31,6 +33,7 @@ data App = App
     , httpManager :: Manager
     , persistConfig :: Settings.PersistConf
     , appLogger :: Logger
+    , redisConn :: Connection
     }
 
 instance HasHttpManager App where
@@ -57,9 +60,9 @@ instance Yesod App where
 
     -- Store session data on the client in encrypted cookies,
     -- default session idle timeout is 120 minutes
-    makeSessionBackend _ = fmap Just $ defaultClientSessionBackend
-        120    -- timeout in minutes
-        "config/client_session_key.aes"
+    -- makeSessionBackend _ = fmap Just $ defaultClientSessionBackend
+    --     120    -- timeout in minutes
+    --     "config/client_session_key.aes"
 
     defaultLayout widget = do
         master <- getYesod
@@ -155,9 +158,6 @@ instance RenderMessage App FormMessage where
 getExtra :: Handler Extra
 getExtra = fmap (appExtra . settings) getYesod
 
--- Note: previous versions of the scaffolding included a deliver function to
--- send emails. Unfortunately, there are too many different options for us to
--- give a reasonable default. Instead, the information is available on the
--- wiki:
---
--- https://github.com/yesodweb/yesod/wiki/Sending-email
+-- Redis
+runR :: Redis a -> Handler a
+runR = defaultRunR redisConn

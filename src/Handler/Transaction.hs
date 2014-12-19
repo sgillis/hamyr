@@ -11,7 +11,7 @@ getTransactionR tid = do
 
 putTransactionR :: TransactionId -> Handler ()
 putTransactionR tid = do
-    input <- requireJsonBody :: Handler TransactionCommand
+    input <- requireJsonBody :: Handler UpdateTransaction
     trans <- runDB $ get404 tid
     case input of
          CompleteTransaction -> updateTransaction Completed $ Entity tid trans

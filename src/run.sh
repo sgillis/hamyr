@@ -1,2 +1,3 @@
 #! /bin/bash
-env PATH="./.cabal-sandbox/bin:$PATH" cabal exec yesod devel
+export PATH="./.cabal-sandbox/bin:$PATH"
+.cabal-sandbox/bin/yesod devel

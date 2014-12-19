@@ -15,10 +15,6 @@ import Fields
 import qualified Data.HashMap.Lazy as HML
 import Data.Aeson.Types (Parser)
 
--- You can define all of your database entities in the entities file.
--- You can find more information on persistent and how to declare entities
--- at:
--- http://www.yesodweb.com/book/persistent/
 share [mkPersist sqlSettings, mkMigrate "migrateAll"]
     $(persistFileWith lowerCaseSettings "config/models")
 
@@ -43,6 +39,7 @@ instance FromJSON Amount where
     parseJSON (Object o) = Amount
         <$> o .: "currency"
         <*> o .: "amount"
+    parseJSON _ = mzero
 
 data CurrencySelection = FirstFull
     deriving Show
@@ -55,30 +52,19 @@ instance FromJSON CurrencySelection where
     parseJSON (String "first_full") = pure FirstFull
     parseJSON _ = mzero
 
--- Refactor this to be different types, because we don't want
--- fromWallet CancelTransaction to work. Would also make type checking
--- easier
-data TransactionCommand =
-      TransferValue
-        { fromWallet        :: Text
-        , toWallet          :: Text
-        , amounts           :: [Amount]
-        , transactionType   :: Text
-        , currencySelection :: CurrencySelection
-        }
-    | ReserveValue
-        { fromWallet        :: Text
-        , toWallet          :: Text
-        , amounts           :: [Amount]
-        , transactionType   :: Text
-        , currencySelection :: CurrencySelection
-        }
-    | CompleteTransaction
-    | CancelTransaction
-    deriving Show
-
 data TransferMethod = Transfer | Reserve
     deriving (Show, Eq, Read)
+
+data TransferValue = TransferValue
+    { method :: TransferMethod
+    , fromWallet :: Text
+    , toWallet :: Text
+    , amounts :: [Amount]
+    , transactionType :: Text
+    , currencySelection :: CurrencySelection
+    }
+
+data UpdateTransaction = CompleteTransaction | CancelTransaction
 
 -- Instances
 instance ToJSON (Entity Currency) where
@@ -117,6 +103,21 @@ instance ToJSON (Entity Wallet) where
         , "allow_negative_balance" .= walletAllowNegativeBalance w
         ]
 
+instance ToJSON Wallet where
+    toJSON w = object
+        [ "created"                .= walletCreated w
+        , "name"                   .= walletName w
+        , "allow_negative_balance" .= walletAllowNegativeBalance w
+        ]
+
+instance FromJSON Wallet where
+    parseJSON (Object o) = Wallet
+        <$> o .: "created"
+        <*> o .: "name"
+        <*> o .: "allow_negative_balance"
+
+    parseJSON _ = mzero
+
 instance FromJSON WalletInput where
     parseJSON (Object o) = WalletInput
         <$> o .: "name"
@@ -124,25 +125,25 @@ instance FromJSON WalletInput where
 
     parseJSON _ = mzero
 
-instance FromJSON TransactionCommand where
-    parseJSON (Object o) =
-        case HML.lookup "method" o of
-            Just (String "reserve_value") -> ReserveValue
-                <$> o  .: "from_wallet"
-                <*> o  .: "to_wallet"
-                <*> (o .: "amounts" >>= parseJSON)
-                <*> o  .: "transaction_type"
-                <*> (o .: "currency_selection" >>= parseJSON)
-            Just (String "complete_transaction") -> pure CompleteTransaction
-            Just (String "cancel_transaction") -> pure CancelTransaction
-            Just (String "transfer_value") -> TransferValue
-                <$> o  .: "from_wallet"
-                <*> o  .: "to_wallet"
-                <*> (o .: "amounts" >>= parseJSON)
-                <*> o  .: "transaction_type"
-                <*> (o .: "currency_selection" >>= parseJSON)
+instance FromJSON TransferMethod where
+    parseJSON (String "reserve_value")  = pure Reserve
+    parseJSON (String "transfer_value") = pure Transfer
+    parseJSON _                         = mzero
 
-            _ -> mzero
+instance FromJSON TransferValue where
+    parseJSON (Object o) = TransferValue
+        <$> o .: "method"
+        <*> o  .: "from_wallet"
+        <*> o  .: "to_wallet"
+        <*> (o .: "amounts" >>= parseJSON)
+        <*> o  .: "transaction_type"
+        <*> (o .: "currency_selection" >>= parseJSON)
+    parseJSON _ = mzero
+
+instance FromJSON UpdateTransaction where
+    parseJSON (String "complete_transaction") = pure CompleteTransaction
+    parseJSON (String "cancel_transaction")   = pure CancelTransaction
+    parseJSON _                               = mzero
 
 instance ToJSON (Entity Transaction) where
     toJSON (Entity tid t) = object

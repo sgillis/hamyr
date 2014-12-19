@@ -26,6 +26,7 @@ Wallet
     name Text
     allowNegativeBalance Bool default=False
     UniqueWalletName name
+    deriving Show
 
 WalletBalance
     wallet WalletId

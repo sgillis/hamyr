@@ -35,6 +35,7 @@ import Handler.Wallet
 import Handler.Transactions
 import Handler.Balance
 import Handler.Transaction
+import Redis
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
@@ -75,6 +76,7 @@ makeFoundation conf = do
 
     loggerSet' <- newStdoutLoggerSet defaultBufSize
     (getter, _) <- clockDateCacher
+    rconn <- mkRedisConn
 
     let logger = Yesod.Core.Types.Logger loggerSet' getter
         mkFoundation p = App
@@ -84,6 +86,7 @@ makeFoundation conf = do
             , httpManager = manager
             , persistConfig = dbconf
             , appLogger = logger
+            , redisConn = rconn
             }
         tempFoundation = mkFoundation $ error "connPool forced in tempFoundation"
         logFunc = messageLoggerSource tempFoundation logger
