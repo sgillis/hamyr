@@ -10,11 +10,11 @@ Possible improvements
  - [.] sendResponseStatus return JSON
  - [x] Refactor functions to be more pure in Transactions.hs
  - [ ] QuickCheck tests
- - [ ] Benchmark
+ - [x] Benchmark
  - [ ] Move to MySQL
  - [ ] Implement bonus amounts
  - [ ] Implement multiple CurrencySelection options
- - [ ] Caching
+ - [.] Caching
  - [ ] Shield direct access to WalletBalance in Model.hs, should only use
        `getBalance` as an entry point to `WalletBalance`
  - [ ] Improve module structure

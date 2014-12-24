@@ -63,6 +63,7 @@ instance Yesod App where
     -- makeSessionBackend _ = fmap Just $ defaultClientSessionBackend
     --     120    -- timeout in minutes
     --     "config/client_session_key.aes"
+    makeSessionBackend = const $ return Nothing
 
     defaultLayout widget = do
         master <- getYesod

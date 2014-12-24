@@ -2,7 +2,6 @@ module Cache where
 
 import Prelude
 import Data.ByteString
-import Data.Text
 import Data.Aeson
 import Import hiding (get)
 import Database.Redis hiding (String)
@@ -13,13 +12,7 @@ cacheView :: ByteString -> (ByteString -> Maybe a) -> Handler a
 cacheView cacheKey parse constructor toValue = do
     cres <- runR $ get cacheKey
     mres <- case cres of
-                 Right (Just bs) -> do
-                     liftIO $ print bs
-                     let parsed = parse bs
-                     case parsed of
-                          Nothing -> liftIO $ print "Nothing"
-                          _       -> liftIO $ print "Success"
-                     return parsed
+                 Right (Just bs) -> return $ parse bs
                  _               -> return Nothing
     val <- case mres of
                 Just res -> return $ toValue res
